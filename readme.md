@@ -24,7 +24,7 @@
 
 ## Structure
 
-![initial](https://github.com/lastime1650/VATEX_NOVA_AI)
+![initial](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/VATEX_NOVA_AI.png)
 
 ---
 
