@@ -10,20 +10,26 @@
 
 ---
 
-# VateX Series - VateX EVO AI
+# VateX Series - VateX NOVA AI
 
 <div align="center">
   <img
-    src="https://github.com/lastime1650/VateX/blob/mainv2/images/VATEX_EVO_AI.png"
-    alt="VATEX EVO"
+    src="https://github.com/lastime1650/VateX/blob/mainv2/images/VATEX_NOVA_AI.png"
+    alt="VATEX NOVA"
     width="400"
   />
 </div>
 
 ---
 
-**EVO** means "Evolution"
-It provides the capability to train and predict frameworks on deep learning and AI very easily with only RestAPI.
+## Structure
+
+![initial](https://github.com/lastime1650/VATEX_NOVA_AI)
+
+---
+
+**NOVA** means "the NEW"
+It provides the capability to train and predict frameworks on deep learning and AI very easily with only RestAPI(Json).
 
 ---
 
