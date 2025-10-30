@@ -36,9 +36,9 @@ class AI_API_SERVER():
         # DL(딥러닝) 예측
         self.app_router.post("api/solution/util/nova/DL/predict")(self.DL_Predict)
         
-    def DL_Train(self, req:FastAPI.Request, jsonData = Body(...)):
+    def DL_Train(self, req:Request, jsonData = Body(...)):
         pass
-    def DL_Predict(self, req:FastAPI.Request, jsonData = Body(...)):
+    def DL_Predict(self, req:Request, jsonData = Body(...)):
         pass
     
     def Run(self)->bool:

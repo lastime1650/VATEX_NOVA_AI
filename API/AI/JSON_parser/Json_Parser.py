@@ -86,7 +86,8 @@ class TrainJson_Parser():
         # 전처리된 데이터를 가져옴
         X = TrainDataManager.X_y_TrainManager.Get_X()
         y = TrainDataManager.X_y_TrainManager.Get_y()
-        
+        print(X)
+        print(y)
         # 3. 모델 훈련
         print("\nStep 3: Fitting Model...")
         self._Model_fit(X, y)

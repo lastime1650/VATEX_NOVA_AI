@@ -23,7 +23,7 @@ if __name__ == "__main__":
     
     quit()"""
 
-    obj = TrainJson_Parser(
+    """obj = TrainJson_Parser(
         '''
     {
         "id": "classification-model-02",
@@ -60,7 +60,22 @@ if __name__ == "__main__":
         }
     }'''
     )
-    print( obj.Start_Train() )
+    print( obj.Start_Train() )"""
+    
+    sample = """{
+            "id": "classification-model-01",
+            "data": {
+                "X": {
+                    "source": [
+                        [11, 22, 33]
+                    ]
+                }
+            }
+        }"""
+
+    print(
+        PredictJson_Parser(sample).Start_Prediction()
+    )
     
     #API = AI_API_SERVER()
     #API.Run()
