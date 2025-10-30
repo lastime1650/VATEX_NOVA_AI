@@ -42,7 +42,7 @@ It provides the capability to train and predict frameworks on deep learning and 
 
 ## Examples
 
-> ![note]
+![note]
 > 
 > Python Example -> [https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/api_request_client_sample.py](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/api_request_client_sample.py)
 >
