@@ -36,11 +36,16 @@ It provides the capability to train and predict frameworks on deep learning and 
 ## Key Components
 
 1. **Only RestAPI**
-2. **Easy Connect to AI/DNN !**
+2. **Easy Connect to AI/DNN ! @Created Simple Framework for Easy**
 
 ---
 
 ## Examples
+
+> ![note]
+> 
+> Python Example -> [https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/api_request_client_sample.py](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/api_request_client_sample.py)
+>
 
 ### Classification
 
