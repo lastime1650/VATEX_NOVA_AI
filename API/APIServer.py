@@ -5,7 +5,12 @@ from fastapi.templating import Jinja2Templates
 from starlette.responses import Response, RedirectResponse
 import json
 
+
+# Deep Learning
 from API.AI.JSON_parser.Json_Parser import TrainJson_Parser, PredictJson_Parser
+
+# Machine Learning
+from API.AI.JSON_parser.Json_Parser import MachineLearning_TrainJson_Parser, MachineLearning_PredictJson_Parser
 
 class AI_API_SERVER():
     
@@ -41,18 +46,47 @@ class AI_API_SERVER():
         # DL(딥러닝) 예측
         self.app_router.post("/api/solution/util/nova/DL/predict")(self.DL_Predict)
         
+        
+        # ML(머신러닝) 훈련
+        self.app_router.post("/api/solution/util/nova/ML/train")(self.ML_Train)
+        
+        # ML(머신러닝) 예측
+        self.app_router.post("/api/solution/util/nova/ML/predict")(self.ML_Predict)
+        
         self.app.include_router(self.app_router)
         
         
     def DL_Train(self, req:Request, jsonData = Body(...)):
         
-        return self._success_output( TrainJson_Parser(jsonData).Start_Train() )
+        try:
+            return self._success_output( TrainJson_Parser(jsonData).Start_Train() )
+        except Exception as e:
+            return self._failed_output( str(e) )
         
     
     def DL_Predict(self, req:Request, jsonData = Body(...)):
         
-        return self._success_output( PredictJson_Parser(jsonData).Start_Prediction() )
+        try:
+            return self._success_output( PredictJson_Parser(jsonData).Start_Prediction() )
+        except Exception as e:
+            return self._failed_output( str(e) )
     
+    def ML_Train(self, req:Request, jsonData = Body(...)):
+        
+        try:
+            return self._success_output( MachineLearning_TrainJson_Parser(jsonData).Start_Train() )
+        except Exception as e:
+            return self._failed_output( str(e) )
+        
+    
+    def ML_Predict(self, req:Request, jsonData = Body(...)):
+        
+        try:
+            return self._success_output( MachineLearning_PredictJson_Parser(jsonData).Start_Prediction() )
+        except Exception as e:
+            return self._failed_output( str(e) )
+        
+        
     
     def _failed_output(self, reason:str)->dict:
         return {

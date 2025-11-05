@@ -47,10 +47,42 @@ It provides the capability to train and predict frameworks on deep learning and 
 > Python Example -> [https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/api_request_client_sample.py](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/api_request_client_sample.py)
 >
 
-### Classification
+---
 
-### [1/2]. Train
+# VATEX NOVA AI - API Usage Guide
 
+This guide provides instructions and examples for using the VATEX NOVA AI API for Deep Learning and Machine Learning tasks.
+
+## API Endpoint Configuration
+
+Before making requests, configure your client with the server's IP and port.
+
+-   **IP Address:** `192.168.1.205`
+-   **Port:** `10302`
+-   **Base URL:** `http://192.168.1.205:10302`
+
+### API Paths
+
+| Task | Method | Path |
+| :--- | :--- | :--- |
+| **Deep Learning Train** | `POST` | `/api/solution/util/nova/DL/train` |
+| **Deep Learning Predict** | `POST` | `/api/solution/util/nova/DL/predict` |
+| **Machine Learning Train** | `POST` | `/api/solution/util/nova/ML/train` |
+| **Machine Learning Predict** | `POST` | `/api/solution/util/nova/ML/predict` |
+
+---
+
+# Deep Learning API
+
+## 1. Classification
+
+### 1.1. Train a Classification Model
+
+This example demonstrates how to train a neural network for a multi-class classification task.
+
+**Endpoint:** `POST /api/solution/util/nova/DL/train`
+
+**Request Body:**
 ```json
 {
   "id": "classification-model-01",
@@ -62,10 +94,7 @@ It provides the capability to train and predict frameworks on deep learning and 
           ]
       },
       "y": {
-          "source": [
-            "A", "B", "C", "B", 
-            "C", "A", "C", "B"
-          ],
+          "source": [ "A", "B", "C", "B", "C", "A", "C", "B" ],
           "y_type": "one_hot_encode"
       }
   },
@@ -83,7 +112,7 @@ It provides the capability to train and predict frameworks on deep learning and 
           "metrics": ["accuracy"]
       },
       "fit": {
-          "epochs": 100,
+          "epochs": 10,
           "batch_size": 1,
           "validation_split": 0.25
       }
@@ -91,19 +120,34 @@ It provides the capability to train and predict frameworks on deep learning and 
 }
 ```
 
-This is JSON Request Body for the SoftMax-Classification
+**Response:**
+The response is a list of JSON objects, one for each epoch, containing the training and validation metrics.
 
-
-```python
-[ ..., {'accuracy': 0.5, 'loss': 1.0380398035049438, 'val_accuracy': 0.0, 'val_loss': 1.1393353939056396}, {'accuracy': 0.5, 'loss': 1.0375632047653198, 'val_accuracy': 0.0, 'val_loss': 1.1382691860198975}, {'accuracy': 0.5, 'loss': 1.0382722616195679, 'val_accuracy': 0.0, 'val_loss': 1.1425538063049316}] # output
+```json
+[
+    {
+        "accuracy": 0.3333333432674408,
+        "loss": 1.0891636610031128,
+        "val_accuracy": 0.5,
+        "val_loss": 0.9032398462295532
+    },
+    {
+        "accuracy": 0.3333333432674408,
+        "loss": 1.082886815071106,
+        "val_accuracy": 0.5,
+        "val_loss": 0.9078031778335571
+    },
+    ...
+]
 ```
 
-When the value is output, the value of the "accuracy metric" is included as many times as the number of training epochs.
+### 1.2. Predict with the Classification Model
 
-<br>
+Use the `id` of the trained model to make predictions on new data.
 
-### [2/2]. Prediction
+**Endpoint:** `POST /api/solution/util/nova/DL/predict`
 
+**Request Body:**
 ```json
 {
     "id": "classification-model-01",
@@ -117,43 +161,36 @@ When the value is output, the value of the "accuracy metric" is included as many
 }
 ```
 
-When you request Predition, there only have "id", "X" in "data".
-
-<br>
+**Response:**
+The output provides the class with the highest probability (`argmax`), the lowest (`argmin`), and the probabilities for all classes (`all`).
 
 ```json
 {
-  "argmax": {
-    "A": 0.3658864200115204
-  }, 
-  "argmin": {
-    "C": 0.2932397723197937
-  }, 
-  "all": {
-    "A": 0.3658864200115204, 
-    "B": 0.34087374806404114, 
-    "C": 0.2932397723197937
-  }
+    "status": true,
+    "output": {
+        "argmax": { "B": 0.33860063552856445 },
+        "argmin": { "A": 0.32945770025253296 },
+        "all": {
+            "A": 0.32945770025253296,
+            "B": 0.33860063552856445,
+            "C": 0.3319416642189026
+        }
+    }
 }
 ```
 
-The output will provide the predicted data in the form of float. And Classification provides the two highest or lowest results, as well as the overall accuracy figures.
+## 2. Regression
 
+### 2.1. Train a Regression Model
 
----
+This example shows how to train a neural network for a regression task to predict a continuous value.
 
+**Endpoint:** `POST /api/solution/util/nova/DL/train`
 
-
-<br>
-
-
-### Regration
-
-### [1/2]. Train
-
+**Request Body:**
 ```json
 {
-  "id": "regration-model-01",
+  "id": "regression-model-01",
   "data": {
       "X": {
           "source": [
@@ -162,7 +199,7 @@ The output will provide the predicted data in the form of float. And Classificat
           ]
       },
       "y": {
-          "source": [24, 35, 3, 0, 35, 24, 64, 33],
+          "source": [ 1.0, 2.0, 3.0, 2.0, 3.0, 1.0, 3.0, 2.0 ],
           "y_type": "min_max"
       }
   },
@@ -180,7 +217,7 @@ The output will provide the predicted data in the form of float. And Classificat
           "metrics": ["mae"]
       },
       "fit": {
-          "epochs": 1000,
+          "epochs": 10,
           "batch_size": 1,
           "validation_split": 0.25
       }
@@ -188,21 +225,35 @@ The output will provide the predicted data in the form of float. And Classificat
 }
 ```
 
-This is JSON Request Body for the Sigmoid-Regression (mse)
-
-<br>
-
-```python
-[ ..., {'loss': 0.023968348279595375, 'mae': 0.14522744715213776, 'val_loss': 0.20794758200645447, 'val_mae': 0.43592602014541626}, {'loss': 0.023929255083203316, 'mae': 0.14515821635723114, 'val_loss': 0.20819859206676483, 'val_mae': 0.4363044500350952}] # output
-```
-
-When the value is output, the value of the "mae metric" is included as many times as the number of training epochs.
-
-### [2/2]. Prediction
+**Response:**
+The API returns a list of metrics for each training epoch.
 
 ```json
+[
+    {
+        "loss": 0.2034807652235031,
+        "mae": 0.38669994473457336,
+        "val_loss": 0.13519415259361267,
+        "val_mae": 0.3201397657394409
+    },
+    {
+        "loss": 0.20247896015644073,
+        "mae": 0.38515543937683105,
+        "val_loss": 0.13282975554466248,
+        "val_mae": 0.3143080770969391
+    },
+    ...
+]
+```
+
+### 2.2. Predict with the Regression Model
+
+**Endpoint:** `POST /api/solution/util/nova/DL/predict`
+
+**Request Body:**
+```json
 {
-    "id": "regration-model-01",
+    "id": "regression-model-01",
     "data": {
         "X": {
             "source": [
@@ -213,12 +264,208 @@ When the value is output, the value of the "mae metric" is included as many time
 }
 ```
 
-When you request Predition, there only have "id", "X" in "data".
-
-<br>
+**Response:**
+The output is the single predicted numerical value.
 
 ```json
-{"output": 28.43122673034668}
+{
+    "status": true,
+    "output": {
+        "output": 2.010890245437622
+    }
+}
 ```
 
-The output will provide the predicted data in the form of float.
+---
+
+# Machine Learning API
+
+## 1. Classification (Random Forest)
+
+### 1.1. Train a Classification Model
+
+**Endpoint:** `POST /api/solution/util/nova/ML/train`
+
+**Request Body:**
+```json
+{
+    "id": "MyML-01",
+    "data": {
+        "X": { "source": [
+                [10, 15, 20], [12, 18, 25], [9, 14, 19], [11, 17, 23],
+                [50, 55, 60], [53, 58, 63], [47, 52, 57], [55, 60, 65],
+                [90, 85, 80], [88, 82, 78], [92, 87, 83], [95, 89, 84]
+            ]
+        },
+        "y": {
+            "source": [ "A", "A", "A", "A", "B", "B", "B", "B", "C", "C", "C", "C" ],
+            "y_type": "label"
+        }
+    },
+    "train": {
+        "model": {
+            "model_name": "RandomForestClassifier",
+            "model_params": { "n_estimators": 100, "random_state": 4 }
+        },
+        "trainset": { "test_size": 0.25, "shuffle": true, "stratify": "y" }
+    }
+}
+```
+
+**Response:**
+The `output` field represents the model's accuracy score on the test set.
+
+```json
+{
+    "status": true,
+    "output": 1.0
+}
+```
+
+### 1.2. Predict with the Classification Model
+
+**Endpoint:** `POST /api/solution/util/nova/ML/predict`
+
+**Request Body:**
+```json
+{
+    "id": "MyML-01",
+    "data": {
+        "X": { "source": [ [10, 15, 20] ] }
+    }
+}
+```
+
+**Response:**
+The response includes the predicted probabilities for each class.
+
+```json
+{
+    "status": true,
+    "output": {
+        "argmax": { "A": 0.98 },
+        "argmin": { "C": 0.0 },
+        "all": { "A": 0.98, "B": 0.02, "C": 0.0 }
+    }
+}
+```
+
+## 2. Regression (Linear Regression)
+
+### 2.1. Train a Regression Model
+
+**Endpoint:** `POST /api/solution/util/nova/ML/train`
+
+**Request Body:**
+```json
+{
+    "id": "Regression-01",
+    "data": {
+        "X": { "source": [[1], [2], [3], [4]] },
+        "y": { "source": [2.0, 4.1, 6.0, 8.2], "y_type": "raw" }
+    },
+    "train": {
+        "model": { "model_name": "LinearRegression" },
+        "trainset": { "test_size": 0.25, "shuffle": true }
+    }
+}
+```
+
+**Response:**
+The `output` field represents the Mean Squared Error (MSE) on the test set. A lower value indicates better performance.
+
+```json
+{
+    "status": true,
+    "output": 0.0
+}
+```
+
+### 2.2. Predict with the Regression Model
+
+**Endpoint:** `POST /api/solution/util/nova/ML/predict`
+
+**Request Body:**
+```json
+{
+    "id": "Regression-01",
+    "data": { "X": { "source": [[5]] } }
+}
+```
+
+**Response:**
+The response provides the predicted value(s), their mean, and standard deviation.
+
+```json
+{
+    "status": true,
+    "output": {
+        "predicted_values": [10.199999999999998],
+        "mean": 10.199999999999998,
+        "std": 0.0
+    }
+}
+```
+
+## 3. Clustering (K-Means)
+
+### 3.1. Train a Clustering Model
+
+Clustering is an unsupervised task, so only input data `X` is required.
+
+**Endpoint:** `POST /api/solution/util/nova/ML/train`
+
+**Request Body:**
+```json
+{
+    "id": "Clustering-01",
+    "data": { "X": { "source": [[1, 2], [1, 4], [5, 6], [6, 5]] } },
+    "train": {
+        "model": {
+            "model_name": "KMeans",
+            "model_params": { "n_clusters": 2, "random_state": 42 }
+        }
+    }
+}
+```
+
+**Response:**
+The `output` field returns a performance score for the clustering model (e.g., silhouette score).
+
+```json
+{
+    "status": true,
+    "output": 0.591051482474553
+}
+```
+
+### 3.2. Predict with the Clustering Model
+
+Predict the cluster assignment for new data points.
+
+**Endpoint:** `POST /api/solution/util/nova/ML/predict`
+
+**Request Body:**
+```json
+{
+    "id": "Clustering-01",
+    "data": { "X": { "source": [[2, 3], [5, 5]] } }
+}
+```
+
+**Response:**
+The response details the cluster assignments for the input data.
+-   **`clusters`**: An array mapping each input data point to a cluster index.
+-   **`unique_labels`**: A list of all unique cluster labels.
+-   **`cluster_counts`**: A dictionary showing how many input points were assigned to each cluster.
+
+```json
+{
+    "status": true,
+    "output": {
+        "clusters": [0, 1],
+        "unique_labels": [0, 1],
+        "cluster_counts": { "0": 1, "1": 1 }
+    }
+}
+```
