@@ -24,7 +24,7 @@
 
 ## Structure
 
-![initial](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/VATEX_NOVA_AI.png)
+![initial](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/VATEX_NOVA_AI_v2.png)
 
 ---
 
@@ -57,6 +57,7 @@ This guide provides instructions and examples for using the VATEX NOVA AI API fo
 
 Before making requests, configure your client with the server's IP and port.
 
+-   <Sample Connection>
 -   **IP Address:** `192.168.1.205`
 -   **Port:** `10302`
 -   **Base URL:** `http://192.168.1.205:10302`
