@@ -9,8 +9,8 @@ import os, pickle
 import numpy as np
 
 class PredictJson_Parser():
-    def __init__(self, json_str: str, StoredDir: str = "./Storage"):
-        self.PredictJson: dict = json.loads(json_str)
+    def __init__(self, PredictJson: dict, StoredDir: str = "./Storage"):
+        self.PredictJson: dict = PredictJson
         self.id: str = self.PredictJson["id"]
         self.StoredDir = StoredDir
         self.model: Model = None
@@ -61,8 +61,8 @@ class PredictJson_Parser():
     
 
 class TrainJson_Parser():
-    def __init__(self, json_str: str, StoredDir: str = "./Storage"):
-        self.TrainJson: dict = json.loads(json_str)
+    def __init__(self, TrainJson: dict, StoredDir: str = "./Storage"):
+        self.TrainJson: dict = TrainJson
         self.id: str = self.TrainJson["id"]
         self.StoredDir = StoredDir
         self.model: Model = None
@@ -149,8 +149,8 @@ class TrainJson_Parser():
 from API.AI.AIObjects.MachineLearning.Trainer import  MachineLearning_Enum, helper_name_to_model_enum, helper_name_to_ML_y_types, ML_y_types, Make_Train_Test_sets, Model_fit, Make_Clustering_sets
 
 class MachineLearning_TrainJson_Parser():
-    def __init__(self, json_str: str, StoredDir: str = "./Storage"):
-        self.TrainJson: dict = json.loads(json_str)
+    def __init__(self, TrainJson: dict, StoredDir: str = "./Storage"):
+        self.TrainJson: dict = TrainJson
         self.id: str = self.TrainJson["id"]
         self.StoredDir = StoredDir
         
@@ -255,8 +255,8 @@ class MachineLearning_TrainJson_Parser():
 from API.AI.AIObjects.MachineLearning.Trainer import ML_Predict
     
 class MachineLearning_PredictJson_Parser():
-    def __init__(self, json_str: str, StoredDir: str = "./Storage"):
-        self.TrainJson: dict = json.loads(json_str)
+    def __init__(self, TrainJson: dict, StoredDir: str = "./Storage"):
+        self.TrainJson: dict = TrainJson
         self.id: str = self.TrainJson["id"]
         self.StoredDir = StoredDir
         '''

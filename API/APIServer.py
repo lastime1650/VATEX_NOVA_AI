@@ -59,7 +59,7 @@ class AI_API_SERVER():
     def DL_Train(self, req:Request, jsonData = Body(...)):
         
         try:
-            return self._success_output( TrainJson_Parser(jsonData).Start_Train() )
+            return self._success_output( TrainJson_Parser( self._output_jsonData( jsonData ) ).Start_Train() )
         except Exception as e:
             return self._failed_output( str(e) )
         
@@ -67,14 +67,14 @@ class AI_API_SERVER():
     def DL_Predict(self, req:Request, jsonData = Body(...)):
         
         try:
-            return self._success_output( PredictJson_Parser(jsonData).Start_Prediction() )
+            return self._success_output( PredictJson_Parser( self._output_jsonData( jsonData ) ).Start_Prediction() )
         except Exception as e:
             return self._failed_output( str(e) )
     
     def ML_Train(self, req:Request, jsonData = Body(...)):
         
         try:
-            return self._success_output( MachineLearning_TrainJson_Parser(jsonData).Start_Train() )
+            return self._success_output( MachineLearning_TrainJson_Parser( self._output_jsonData( jsonData ) ).Start_Train() )
         except Exception as e:
             return self._failed_output( str(e) )
         
@@ -82,11 +82,18 @@ class AI_API_SERVER():
     def ML_Predict(self, req:Request, jsonData = Body(...)):
         
         try:
-            return self._success_output( MachineLearning_PredictJson_Parser(jsonData).Start_Prediction() )
+            return self._success_output( MachineLearning_PredictJson_Parser( self._output_jsonData( jsonData ) ).Start_Prediction() )
         except Exception as e:
             return self._failed_output( str(e) )
         
-        
+    
+    def _output_jsonData(self, jsonData:any)->dict:
+        if isinstance(jsonData, dict):
+            return jsonData
+        elif isinstance(jsonData, str):
+            return json.loads(jsonData)
+        elif isinstance(jsonData, bytes):
+            return json.loads(jsonData)
     
     def _failed_output(self, reason:str)->dict:
         return {
