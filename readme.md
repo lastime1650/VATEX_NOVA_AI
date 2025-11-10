@@ -24,7 +24,7 @@
 
 ## Structure
 
-![initial](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/VATEX_NOVA_AI_v2.png)
+![initial](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/VATEX_NOVA_AI_V3.png)
 
 ---
 
@@ -78,10 +78,16 @@ Before making requests, configure your client with the server's IP and port.
 | **WithId Sample y Edit** | `POST` | `/api/solution/util/nova/with_id/sample/y/edit` |
 | **WithId Sample X Edit** | `POST` | `/api/solution/util/nova/with_id/sample/x/edit` |
 | **WithId Sample Remover** | `POST` | `/api/solution/util/nova/with_id/sample/remove` |
-| **WithId - Machine Learning Predict** | `POST` | `/api/solution/util/nova/with_id/ML/train` |
+| **WithId - Machine Learning Train** | `POST` | `/api/solution/util/nova/with_id/ML/train` |
 | **WithId - Machine Learning Predict** | `POST` | `/api/solution/util/nova/with_id/ML/predict` |
-| **WithId - Deep Learning Predict** | `POST` | `/api/solution/util/nova/with_id/DL/train` |
+| **WithId - Deep Learning Train** | `POST` | `/api/solution/util/nova/with_id/DL/train` |
 | **WithId - Deep Learning Predict** | `POST` | `/api/solution/util/nova/with_id/DL/predict` |
+
+### What is a "**WithId**" ??
+
+"WithId" API added.
+
+This finally eliminates the need for the Client to store samples directly in the local environment! Now, using the "WithId" API, you can add samples to the NOVA AI in advance, and build AI modeling at any time.
 
 > [!NOTE]
 > 
