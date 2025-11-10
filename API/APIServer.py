@@ -84,7 +84,7 @@ class AI_API_SERVER():
         self.app.include_router(self.app_router)
         
     # HDD에 저장된 샘플 조회
-    def WithId_status(self, req:Request, jsonData = Body(...)):
+    async def WithId_status(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -123,7 +123,7 @@ class AI_API_SERVER():
         except Exception as e:
             return self._failed_output( str(e) )
         
-    def WithId_Predict_DL(self, req:Request, jsonData = Body(...)):
+    async def WithId_Predict_DL(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -142,7 +142,7 @@ class AI_API_SERVER():
         except Exception as e:
             return self._failed_output( str(e) )
     
-    def WithId_Train_DL(self, req:Request, jsonData = Body(...)):
+    async def WithId_Train_DL(self, req:Request, jsonData = Body(...)):
         try:
             parsed = self._output_jsonData( jsonData )
             
@@ -155,7 +155,7 @@ class AI_API_SERVER():
         except Exception as e:
             return self._failed_output( str(e) )
     
-    def WithId_Predict_ML(self, req:Request, jsonData = Body(...)):
+    async def WithId_Predict_ML(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -174,7 +174,7 @@ class AI_API_SERVER():
         except Exception as e:
             return self._failed_output( str(e) )
     
-    def WithId_Train_ML(self, req:Request, jsonData = Body(...)):
+    async def WithId_Train_ML(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -210,7 +210,7 @@ class AI_API_SERVER():
         except Exception as e:
             return self._failed_output( str(e) )
     
-    def WithId_Sample_Remove(self, req:Request, jsonData = Body(...)):
+    async def WithId_Sample_Remove(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -229,7 +229,7 @@ class AI_API_SERVER():
         except Exception as e:
             return self._failed_output( str(e) )
     
-    def WithId_Sample_x_Edit(self, req:Request, jsonData = Body(...)):
+    async def WithId_Sample_x_Edit(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -250,7 +250,7 @@ class AI_API_SERVER():
         except Exception as e:
             return self._failed_output( str(e) )
         
-    def WithId_Sample_y_Edit(self, req:Request, jsonData = Body(...)):
+    async def WithId_Sample_y_Edit(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -272,7 +272,7 @@ class AI_API_SERVER():
             return self._failed_output( str(e) )
     
     # 이벤트 축적
-    def WithId_Sample_Push(self, req:Request, jsonData = Body(...)):
+    async def WithId_Sample_Push(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->
         {
@@ -308,7 +308,7 @@ class AI_API_SERVER():
     
     ########################################################################################################
         
-    def DL_Train(self, req:Request, jsonData = Body(...)):
+    async def DL_Train(self, req:Request, jsonData = Body(...)):
         
         try:
             return self._success_output( TrainJson_Parser( self._output_jsonData( jsonData ) ).Start_Train() )
@@ -316,14 +316,14 @@ class AI_API_SERVER():
             return self._failed_output( str(e) )
         
     
-    def DL_Predict(self, req:Request, jsonData = Body(...)):
+    async def DL_Predict(self, req:Request, jsonData = Body(...)):
         
         try:
             return self._success_output( PredictJson_Parser( self._output_jsonData( jsonData ) ).Start_Prediction() )
         except Exception as e:
             return self._failed_output( str(e) )
     
-    def ML_Train(self, req:Request, jsonData = Body(...)):
+    async def ML_Train(self, req:Request, jsonData = Body(...)):
         
         try:
             return self._success_output( MachineLearning_TrainJson_Parser( self._output_jsonData( jsonData ) ).Start_Train() )
@@ -331,7 +331,7 @@ class AI_API_SERVER():
             return self._failed_output( str(e) )
         
     
-    def ML_Predict(self, req:Request, jsonData = Body(...)):
+    async def ML_Predict(self, req:Request, jsonData = Body(...)):
         
         try:
             return self._success_output( MachineLearning_PredictJson_Parser( self._output_jsonData( jsonData ) ).Start_Prediction() )
