@@ -6,6 +6,8 @@ from starlette.responses import Response, RedirectResponse
 import json
 
 
+
+
 # Deep Learning
 from API.AI.JSON_parser.Json_Parser import TrainJson_Parser, PredictJson_Parser
 
@@ -76,9 +78,51 @@ class AI_API_SERVER():
         self.app_router.post("/api/solution/util/nova/with_id/DL/train")(self.WithId_Train_DL)
         self.app_router.post("/api/solution/util/nova/with_id/DL/predict")(self.WithId_Predict_DL)
         
+        self.app_router.post("/api/solution/util/nova/with_id/status")(self.WithId_status)
+        
         
         self.app.include_router(self.app_router)
-    
+        
+    # HDD에 저장된 샘플 조회
+    def WithId_status(self, req:Request, jsonData = Body(...)):
+        '''
+        jsonData ->
+        {
+            "id": string,
+            "print": "detail" or "small" or "no keys" => default: "small"  
+        }
+        
+        <output>
+        if print == "small"
+        {
+            "samples_x_count" : 1234,
+            "train_history" : [
+                {
+                    "nano_timestamp": <unsigned long long>,
+                    "nano_timestamp_iso8901" : string,
+                    "at_samples_x_count" : <unsigned long long>, // 당시 훈련시, 했던 샘플 개수
+                    "train_result": {?} // 요청값에 따라 다름
+                },,,
+            ],
+            "predict_history": [
+                {
+                    "nano_timestamp": <unsigned long long>,
+                    "nano_timestamp_iso8901" : string,
+                    "predict_result": {?} //
+                }
+            ]
+        }
+        '''
+        try:
+            parsed = self._output_jsonData( jsonData )
+            
+            
+            id:str = parsed["id"]
+                
+            return self._success_output( self.WithId_AI_class.Get_Status( id ) )
+        except Exception as e:
+            return self._failed_output( str(e) )
+        
     def WithId_Predict_DL(self, req:Request, jsonData = Body(...)):
         '''
         jsonData ->

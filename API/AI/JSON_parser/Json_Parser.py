@@ -1,5 +1,7 @@
 # API/AI/JSON_parser/Json_Parser.py
 
+from API.Timestamp import now_to_nano_int, nano_to_iso_string
+
 import json
 from typing import Dict, Optional
 import API.AI.AIObjects.DeepLearning.LayerModel as Modeler
@@ -290,7 +292,79 @@ class PushSampleStruct():
             "sample_x" : self.sample_x,
             "sample_y" : self.sample_y
         }
+
+class WithIdAIStatusManager():
+    def __init__(self, data:dict):
+        '''
+        {
+            "samples_x_count" : 1234,
+            "train_history" : [
+                {
+                    "nano_timestamp": <unsigned long long>,
+                    "nano_timestamp_iso8901" : string,
+                    "at_samples_x_count" : <unsigned long long>, // 당시 훈련시, 했던 샘플 개수
+                    "train_result": {?} // 요청값에 따라 다름
+                },,,
+            ],
+            "predict_history": [
+                {
+                    "nano_timestamp": <unsigned long long>,
+                    "nano_timestamp_iso8901" : string,
+                    "at_samples_x_count" : <unsigned long long>, // 당시 예측시, 했던 샘플 개수
+                    "predict_result": {?} //
+                }
+            ]
+        }
+        '''
+        self.id = data["id"]
+        self.samples = data["samples"]
+        self.status = data["status"]
         
+        self._is_updated = False
+        
+    def Append_train_history(self, nano_timestamp:int, train_result:dict, with_update_at_end:bool = False, with_return:bool = False):
+        self.status["train_history"].append(
+            {
+                "nano_timestamp": nano_timestamp,
+                "nano_timestamp_iso8901" : nano_to_iso_string(nano_timestamp),
+                "at_samples_x_count" : len(self.samples),
+                "train_result": train_result
+            }
+        )
+        if(with_update_at_end and self._is_updated == False):
+            self.Update()
+        if(with_return):
+            return self.status
+        
+    def Append_predict_history(self, nano_timestamp:int, predict_result:dict, with_update_at_end:bool = False, with_return:bool = False):
+        self.status["predict_history"].append(
+            {
+                "nano_timestamp": nano_timestamp,
+                "nano_timestamp_iso8901" : nano_to_iso_string(nano_timestamp),
+                "at_samples_x_count" : len(self.samples),
+                "predict_result": predict_result
+            }
+        )
+        if(with_update_at_end and self._is_updated == False):
+            self.Update()
+        if(with_return):
+            return self.status
+        
+    def Update(self):
+        # status 업데이트
+        self.status["samples_x_count"] = len(self.samples)
+        
+        self._is_updated = True
+        
+    def OutputStatus(self, is_with_update:bool = False)->dict:
+        
+        if(is_with_update and self._is_updated == False ):
+            self.Update()
+        
+        return self.status
+        
+        
+    
 class WithId_AI_class():
     def __init__(self, StoragePath:str):
         self.StoragePath = StoragePath
@@ -313,7 +387,7 @@ class WithId_AI_class():
     def _set_samplefile_to_hdd(self, filepath:str, InputData:dict):
         with open( filepath, "wb" ) as f:
             pickle.dump(InputData, f, protocol=5)
-            
+    
         
     def Sample_Push(self, id:str, samples:list[PushSampleStruct]):
         # 파일 체크.
@@ -323,7 +397,6 @@ class WithId_AI_class():
             
             # 기존 파일 열고 -> 이어저장
             data = self._get_samplefile_by_hdd(filepath)
-            print(data)
             if( data["id"] != id ):
                 raise f"{filepath}에 저장된 id와 다름."
             
@@ -345,6 +418,10 @@ class WithId_AI_class():
                     data["samples"].append(sample)
                         
             
+            # Status 업데이트
+            data["status"] = WithIdAIStatusManager(data).OutputStatus(True)
+            #print(data["status"])
+            
             # 이어저장
             self._set_samplefile_to_hdd(filepath, data)
                 
@@ -352,7 +429,12 @@ class WithId_AI_class():
             # case: 파일 없음
             data = {
                     "id" : id,
-                    "samples" : [ sample.Output_in_dict() for sample in samples ]
+                    "samples" : [ sample.Output_in_dict() for sample in samples ],
+                    "status":{
+                        "samples_x_count" : 1,
+                        "train_history": [],
+                        "predict_history": []
+                    }
                 }
             
             # 새로 쓰기
@@ -400,8 +482,12 @@ class WithId_AI_class():
                 if samples[i]["sample_id"] == sample_id :
                     samples.pop(i)
                     
+                    
+            # Status 업데이트
+            data["status"] = WithIdAIStatusManager(data).OutputStatus(True)
+            #print(data["status"])
+            
             self._set_samplefile_to_hdd(filepath, data)
-            print(data)
             return True
         else:
             raise "No File exists"
@@ -469,23 +555,55 @@ class WithId_AI_class():
         }
         
         
-        return MachineLearning_TrainJson_Parser(
-            ML_TRAIN_JSON
-        ).Start_Train()
+        output_train = 0.0
+        try:
+            output_train = MachineLearning_TrainJson_Parser(
+                ML_TRAIN_JSON
+            ).Start_Train()
+            
+            # Status 업데이트
+            data["status"] = WithIdAIStatusManager(data).Append_train_history(now_to_nano_int(), {"type": "ML", "output": output_train},True, True )
+            #print(data["status"])
+            self._set_samplefile_to_hdd(filepath, data)
+            
+            return output_train
+        except Exception as e:
+            return e
+        
+        
+        
         
     # MachineLearning - Predict
     def Sample_ML_Predict(self, id:str, X:list):
-        return MachineLearning_PredictJson_Parser(
-            {
-                "id" : id,
-                "data": {
-                    "X":{
-                        "source": [X] # to 2D
+        filepath  = self._get_filepath(id)
+        data = {}
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+        else:
+            raise "No Samples File"
+        
+        output_predict:dict = {}
+        try:
+            output_predict = MachineLearning_PredictJson_Parser(
+                {
+                    "id" : id,
+                    "data": {
+                        "X":{
+                            "source": [X] # to 2D
+                        }
                     }
                 }
-            }
-        ).Start_Prediction()
-    
+            ).Start_Prediction()
+            
+            # Status 업데이트
+            data["status"] = WithIdAIStatusManager(data).Append_predict_history(now_to_nano_int(), {"type": "ML", "output": output_predict},True, True )
+            #print(data["status"])
+            self._set_samplefile_to_hdd(filepath, data)
+            
+            return output_predict
+        except Exception as e:
+            return e
+        
     # DeepLearning - Train
     def Sample_DL_Train(self, id:str, y_type:str, train:dict):
         
@@ -523,13 +641,34 @@ class WithId_AI_class():
             "train": train
         }
         
-        return TrainJson_Parser(
-            DL_TRAIN_JSON
-        ).Start_Train()
+        output_train:list[dict] = []
+        try:
+            output_train = TrainJson_Parser(
+                DL_TRAIN_JSON
+            ).Start_Train()
+            
+            # Status 업데이트
+            data["status"] = WithIdAIStatusManager(data).Append_train_history(now_to_nano_int(), {"type": "DL", "output": output_train},True, True )
+            #print(data["status"])
+            self._set_samplefile_to_hdd(filepath, data)
+            
+            return output_train
+        except Exception as e:
+            return e
         
     # DeepLearning - Predict
     def Sample_DL_Predict(self, id:str, X:list):
-        return PredictJson_Parser(
+        
+        filepath  = self._get_filepath(id)
+        data = {}
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+        else:
+            raise "No Samples File"
+        
+        output_predict:dict = {}
+        try:
+            output_predict = PredictJson_Parser(
             {
                 "id" : id,
                 "data": {
@@ -539,3 +678,24 @@ class WithId_AI_class():
                 }
             }
         ).Start_Prediction()
+            
+            # Status 업데이트
+            data["status"] = WithIdAIStatusManager(data).Append_predict_history(now_to_nano_int(), {"type": "DL", "output": output_predict},True, True )
+            #print(data["status"])
+            self._set_samplefile_to_hdd(filepath, data)
+            
+            return output_predict
+        except Exception as e:
+            return e
+        
+    def Get_Status(self, id:str):
+        filepath  = self._get_filepath(id)
+        data = {}
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+            
+            return WithIdAIStatusManager(data).OutputStatus()
+        else:
+            raise "No Samples File"
+        
+        

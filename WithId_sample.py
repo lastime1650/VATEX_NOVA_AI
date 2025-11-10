@@ -12,6 +12,7 @@ WithId_Sample_ML_Train_PATH = "/api/solution/util/nova/with_id/ML/train"
 WithId_Sample_ML_Predict_PATH = "/api/solution/util/nova/with_id/ML/predict"
 WithId_Sample_DL_Train_PATH = "/api/solution/util/nova/with_id/DL/train"
 WithId_Sample_DL_Predict_PATH = "/api/solution/util/nova/with_id/DL/predict"
+WithId_Status_PATH = "/api/solution/util/nova/with_id/status"
 
 # Event Push [1/4]
 Sample_Push = \
@@ -210,4 +211,79 @@ print( requests.post( "http://"+API_SERVER_IP+":"+str(API_SERVER_PORT)+WithId_Sa
     => Result
     
     b'{"status":true,"output":{"argmax":{"B":0.5707857608795166},"argmin":{"A":0.4292142391204834},"all":{"A":0.4292142391204834,"B":0.5707857608795166}}}'
+'''
+
+
+WithId_STATUS = \
+"""
+{
+    "id": "MySample-1"
+}
+"""
+print( requests.post( "http://"+API_SERVER_IP+":"+str(API_SERVER_PORT)+WithId_Status_PATH, data=json.dumps(WithId_STATUS)).content )
+
+'''
+Output -> 
+{
+  "samples_x_count": 4,
+  "train_history": [
+    {
+      "nano_timestamp": 1762759823874624737,
+      "nano_timestamp_iso8901": "2025-11-10T16:30:23.874624737Z",
+      "at_samples_x_count": 4,
+      "train_result": {
+        "type": "ML",
+        "output": 1.0
+      }
+    },
+    {
+      "nano_timestamp": 1762759825539053266,
+      "nano_timestamp_iso8901": "2025-11-10T16:30:25.539053266Z",
+      "at_samples_x_count": 4,
+      "train_result": {
+        "type": "DL",
+        "output": [
+          { "accuracy": 0.6667, "loss": 0.6890, "val_accuracy": 1.0, "val_loss": 0.6730 },
+          { "accuracy": 0.6667, "loss": 0.6861, "val_accuracy": 1.0, "val_loss": 0.6688 },
+          { "accuracy": 0.6667, "loss": 0.6836, "val_accuracy": 1.0, "val_loss": 0.6644 },
+          { "accuracy": 0.6667, "loss": 0.6809, "val_accuracy": 1.0, "val_loss": 0.6607 },
+          { "accuracy": 0.6667, "loss": 0.6795, "val_accuracy": 1.0, "val_loss": 0.6551 },
+          { "accuracy": 0.6667, "loss": 0.6761, "val_accuracy": 1.0, "val_loss": 0.6515 },
+          { "accuracy": 0.6667, "loss": 0.6742, "val_accuracy": 1.0, "val_loss": 0.6467 },
+          { "accuracy": 0.6667, "loss": 0.6717, "val_accuracy": 1.0, "val_loss": 0.6420 },
+          { "accuracy": 0.6667, "loss": 0.6698, "val_accuracy": 1.0, "val_loss": 0.6368 },
+          { "accuracy": 0.6667, "loss": 0.6673, "val_accuracy": 1.0, "val_loss": 0.6319 }
+        ]
+      }
+    }
+  ],
+  "predict_history": [
+    {
+      "nano_timestamp": 1762759823887863789,
+      "nano_timestamp_iso8901": "2025-11-10T16:30:23.887863789Z",
+      "at_samples_x_count": 4,
+      "predict_result": {
+        "type": "ML",
+        "output": {
+          "argmax": { "A": 0.64 },
+          "argmin": { "B": 0.36 },
+          "all": { "A": 0.64, "B": 0.36 }
+        }
+      }
+    },
+    {
+      "nano_timestamp": 1762759825665179864,
+      "nano_timestamp_iso8901": "2025-11-10T16:30:25.665179864Z",
+      "at_samples_x_count": 4,
+      "predict_result": {
+        "type": "DL",
+        "output": {
+          "argmax": { "B": 0.5011 },
+          "argmin": { "A": 0.4989 },
+          "all": { "A": 0.4989, "B": 0.5011 }
+        }
+      }
+    }
+  ]
+}
 '''
