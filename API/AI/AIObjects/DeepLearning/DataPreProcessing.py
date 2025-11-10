@@ -9,8 +9,9 @@ import pickle
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, OneHotEncoder
 
 class y_types(Enum):
-    one_hot_encode = 0
-    min_max = 1
+    one_hot_encode = 0 # Softmax 용
+    min_max = 1 # Regression 용
+    binary = 2 # Sigmoid - Binary_Crossentropy 용
 
 class X_y_Train_Manager():
     def __init__(self, id: str, StoragePath: str, X: list, y: list, y_type: y_types):
@@ -69,6 +70,14 @@ class X_y_Train_Manager():
             y_one_hot = onehot_encoder.fit_transform(y_int_encoded.reshape(-1, 1))
             # onehot_encoder는 저장할 필요가 거의 없음 (label_encoder가 핵심)
             return y_one_hot
+        
+        elif y_type == y_types.binary:
+            # 1차원형식의 [1,0,0,1...] 이런 binary_crossentropy 형식으로
+            label_encoder = LabelEncoder()
+            y_int_encoded = label_encoder.fit_transform(y_np)
+            self._save_object(label_encoder, "y_label_encoder_for_the_binary.pkl") # 예측 결과 해석을 위해 저장
+            return y_int_encoded.reshape(-1, 1)
+            
 
     # Getter 메서드 구현
     def Get_X(self) -> np.ndarray:
@@ -102,7 +111,46 @@ class y_scaler(y_ObjectBase):
             "output": float( ( list[list]( self.Object.inverse_transform(ModelPredictOutput) ) )[0][0] )
         }
         
+class y_labeler_for_binary(y_ObjectBase):
+    def __init__(self , Object:LabelEncoder):
+        self.Object = Object
+    def Convert_to_y(self, ModelPredictOutput:list[list])->dict:
+        '''
+            ModelPredictOutput -> 
+            [
+                [ 0.523444 ] # 0.0 부터 1.0 사이값이며, 이 값은 y값에서 "1"인 가에 대한 확률값이다. 예를 들어, 0: 악성아님, 1:악성 일 때, y = [ [0], [1], [1], [0] ] 이렇게 샘플/학습한 경우 만약 Predict() 후 값이 [[0.6]] 이라면, y = [[1]] == "악성" 인지에 대한 확률이 0.6 이나 된다는 의미이다.
+            ]
+        '''
+        Output:dict = {
+            "argmax": {},
+            "argmin": {},
+            "all": {}
+        }
         
+        model_output = np.array(ModelPredictOutput).flatten()
+        classes: np.ndarray = self.Object.classes_  # ex: ['A', 'B']
+        
+        prob_for_class_1 = model_output[0]
+        prob_for_class_0 = 1 - prob_for_class_1
+        
+        all_probs = np.array([prob_for_class_0, prob_for_class_1])
+        
+        max_index = np.argmax(all_probs)
+        min_index = np.argmin(all_probs)
+        
+        for i, class_label in enumerate(classes):
+            prob = float(all_probs[i])
+            
+            if max_index == i:
+                Output["argmax"] = { str(class_label): prob }
+                
+            if min_index == i:
+                Output["argmin"] = { str(class_label): prob }
+            
+            Output["all"][str(class_label)] = prob
+        
+        return Output
+    
 class y_labeler(y_ObjectBase):
     def __init__(self , Object:LabelEncoder):
         self.Object = Object
@@ -165,10 +213,13 @@ class X_y_Predict_Manager():
         self.y_Object:y_ObjectBase = None
         
         # 미리 저장된 파일명에 따라 y_Object자식결정
-        if( os.path.exists( os.path.join(self.saved_dir, "y_scaler.pkl") ) ):
+        if( os.path.exists( os.path.join(self.saved_dir, "y_scaler.pkl") ) ): # for a regression
             scalerObject = self.load_file( os.path.join(self.saved_dir, "y_scaler.pkl") )
             self.y_Object = y_scaler( scalerObject )
-        elif ( os.path.exists( os.path.join(self.saved_dir, "y_label_encoder.pkl") ) ):
+        elif ( os.path.exists( os.path.join(self.saved_dir, "y_label_encoder_for_the_binary.pkl") ) ):  # for a binary
+            labelObject = self.load_file( os.path.join(self.saved_dir, "y_label_encoder_for_the_binary.pkl") )
+            self.y_Object = y_labeler_for_binary( labelObject )
+        elif ( os.path.exists( os.path.join(self.saved_dir, "y_label_encoder.pkl") ) ): # for a softmax
             labelObject = self.load_file( os.path.join(self.saved_dir, "y_label_encoder.pkl") )
             self.y_Object = y_labeler( labelObject )
         else:
@@ -201,6 +252,8 @@ class TrainData_PreProcessing():
             y_type = y_types.one_hot_encode
         elif y_type_str == y_types.min_max.name:
             y_type = y_types.min_max
+        elif y_type_str == y_types.binary.name:
+            y_type = y_types.binary
         else:
             raise ValueError(f"Unsupported y_type: {y_type_str}")
         

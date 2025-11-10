@@ -71,13 +71,30 @@ Before making requests, configure your client with the server's IP and port.
 | **Machine Learning Train** | `POST` | `/api/solution/util/nova/ML/train` |
 | **Machine Learning Predict** | `POST` | `/api/solution/util/nova/ML/predict` |
 
+### [+] **WithId** API Paths
+| Task | Method | Path |
+| :--- | :--- | :--- |
+| **WithId Samples Appending** | `POST` | `/api/solution/util/nova/with_id/sample/push` |
+| **WithId Sample y Edit** | `POST` | `/api/solution/util/nova/with_id/sample/y/edit` |
+| **WithId Sample X Edit** | `POST` | `/api/solution/util/nova/with_id/sample/x/edit` |
+| **WithId Sample Remover** | `POST` | `/api/solution/util/nova/with_id/sample/remove` |
+| **WithId - Machine Learning Predict** | `POST` | `/api/solution/util/nova/with_id/ML/train` |
+| **WithId - Machine Learning Predict** | `POST` | `/api/solution/util/nova/with_id/ML/predict` |
+| **WithId - Deep Learning Predict** | `POST` | `/api/solution/util/nova/with_id/DL/train` |
+| **WithId - Deep Learning Predict** | `POST` | `/api/solution/util/nova/with_id/DL/predict` |
+
+> [!NOTE]
+> 
+> **WithId** API - Python Example -> [https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/WithId_sample.py](https://github.com/lastime1650/VATEX_NOVA_AI/blob/main/WithId_sample.py)
+>
+
 ---
 
 # Deep Learning API
 
 ## 1. Classification
 
-### 1.1. Train a Classification Model
+### 1.1. Train a Classification Model (SoftMax)
 
 This example demonstrates how to train a neural network for a multi-class classification task.
 

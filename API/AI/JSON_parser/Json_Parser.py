@@ -1,7 +1,7 @@
 # API/AI/JSON_parser/Json_Parser.py
 
 import json
-from typing import Dict
+from typing import Dict, Optional
 import API.AI.AIObjects.DeepLearning.LayerModel as Modeler
 import API.AI.AIObjects.DeepLearning.DataPreProcessing as DPP
 from keras.models import Model, load_model
@@ -208,7 +208,7 @@ class MachineLearning_TrainJson_Parser():
         # Model Enum
         self.ModelEnum = helper_name_to_model_enum(self.train_model_name)
         
-        if self.TrainJson["data"].get("y") and self.TrainJson["data"]["y"].get("source"):
+        if self.TrainJson["data"].get("y") and self.TrainJson["data"]["y"].get("source") and self.TrainJson["data"]["y"]["source"] != None:
             y = self.TrainJson["data"]["y"]["source"]
             
             y_type:ML_y_types = helper_name_to_ML_y_types( self.TrainJson["data"]["y"]["y_type"] )
@@ -276,3 +276,266 @@ class MachineLearning_PredictJson_Parser():
         
     def Start_Prediction(self):
         return ML_Predict(self.id, self.StoredDir, self.X)
+    
+
+
+class PushSampleStruct():
+    def __init__(self, sample_id:str, sample_x:list, sample_y:any):
+        self.sample_id = sample_id
+        self.sample_x = sample_x
+        self.sample_y = sample_y
+    def Output_in_dict(self):
+        return {
+            "sample_id" : self.sample_id,
+            "sample_x" : self.sample_x,
+            "sample_y" : self.sample_y
+        }
+        
+class WithId_AI_class():
+    def __init__(self, StoragePath:str):
+        self.StoragePath = StoragePath
+    def _make_dir(self, dir:str):
+        os.makedirs(dir, exist_ok=True)
+    def _get_filepath(self, id:str)->str:
+        saved_dir = os.path.join(self.StoragePath, id) # StoragePath/{id} <dir>
+        self._make_dir(saved_dir) # Creating Dir
+        
+        SamplesFileName = f"{id}_samples"
+        
+        # 파일 체크.
+        filepath  = os.path.join(saved_dir, SamplesFileName)
+        return filepath
+    def _get_samplefile_by_hdd(self, filepath:str)->dict:
+        data = {}
+        with open( filepath, "rb" ) as f:
+            data = pickle.load(f)
+        return data
+    def _set_samplefile_to_hdd(self, filepath:str, InputData:dict):
+        with open( filepath, "wb" ) as f:
+            pickle.dump(InputData, f, protocol=5)
+            
+        
+    def Sample_Push(self, id:str, samples:list[PushSampleStruct]):
+        # 파일 체크.
+        filepath  = self._get_filepath(id)
+        if os.path.exists( filepath ):
+            # case: 파일 있음
+            
+            # 기존 파일 열고 -> 이어저장
+            data = self._get_samplefile_by_hdd(filepath)
+            print(data)
+            if( data["id"] != id ):
+                raise f"{filepath}에 저장된 id와 다름."
+            
+            #data["samples"] += [ sample.Output_in_dict() for sample in samples ]
+            
+            new = [ sample.Output_in_dict() for sample in samples ]
+            for sample in ( new ):
+                
+                # 샘플 id 충돌확인 -> 일치(충돌)시 덮어쓰기 진행
+                is_matched = False
+                for ii, saved_sample in enumerate(data["samples"]):
+                    if saved_sample["sample_id"] == sample["sample_id"]:
+                        data["samples"][ii] = sample
+                        is_matched = True
+                        break
+                    
+                # 충돌아니었을 때 Append 
+                if is_matched == False:
+                    data["samples"].append(sample)
+                        
+            
+            # 이어저장
+            self._set_samplefile_to_hdd(filepath, data)
+                
+        else:
+            # case: 파일 없음
+            data = {
+                    "id" : id,
+                    "samples" : [ sample.Output_in_dict() for sample in samples ]
+                }
+            
+            # 새로 쓰기
+            self._set_samplefile_to_hdd(filepath, data)
+            
+        return True
+    
+    def Sample_x_Edit(self, id:str, sample_id:str, sample_x:list):
+        filepath  = self._get_filepath(id)
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+            for sample in data["samples"]:
+                if sample["sample_id"] == sample_id:
+                    # matched
+                    sample["sample_x"] = sample_x
+                    self._set_samplefile_to_hdd(filepath, data)
+                    print(data)
+                    return True
+            raise "No Matched sample_id"
+        else:
+            raise "No File exists"
+    def Sample_y_Edit(self, id:str, sample_id:str, sample_y:any)->bool:
+        filepath  = self._get_filepath(id)
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+            for sample in data["samples"]:
+                if sample["sample_id"] == sample_id:
+                    # matched
+                    sample["sample_y"] = sample_y
+                    self._set_samplefile_to_hdd(filepath, data)
+                    print(data)
+                    return True
+            raise "No Matched sample_id"
+        else:
+            raise "No File exists"
+        
+    def Sample_Remove(self, id:str, sample_id:str):
+        filepath  = self._get_filepath(id)
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+            samples:list = data["samples"]
+            
+            # 역순으로 제거
+            for i in reversed(range(len(samples))):
+                if samples[i]["sample_id"] == sample_id :
+                    samples.pop(i)
+                    
+            self._set_samplefile_to_hdd(filepath, data)
+            print(data)
+            return True
+        else:
+            raise "No File exists"
+        
+    # MachineLearning - Train
+    def Sample_ML_Train(self, id:str, y_type:str, train:dict):
+        
+        
+        # HDD로부터 확인
+        filepath  = self._get_filepath(id)
+        data = {}
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+        else:
+            raise "No Samples File"
+        
+        if data["id"] != id:
+            raise "MisMatch id"
+        
+        # ML :: Train :: Sample 만들기
+        data_X_sources:list = []
+        data_y_sources:list = []
+        for source in data["samples"]:
+            # X,y 서로간 index는 Matching 되어야한다. 무조건!!@(*^$#*&#@$^#*^%)
+            data_X_sources.append( source["sample_x"] )
+            
+            if( source["sample_y"] == None or ( dict(source).get("sample_y") == None) ):
+                continue
+            else:
+                data_y_sources.append( source["sample_y"] )
+                
+        if( len(data_y_sources) == 0 ):
+            data_y_sources = None
+            
+        
+        print(
+            {
+                "id" : id,
+                "data": {
+                    "X": {
+                        "source": data_X_sources # 2차원
+                    },
+                    "y": {
+                        "source": data_y_sources, # 2차원 ( None/null 이면 클러스터링 취급)
+                        "y_type": y_type
+                    }
+                },
+                "train": train
+            }
+        )
+        
+        ML_TRAIN_JSON = \
+        {
+            "id" : id,
+            "data": {
+                "X": {
+                    "source": data_X_sources # 2차원
+                },
+                "y": {
+                    "source": data_y_sources, # 2차원 ( None/null 이면 클러스터링 취급)
+                    "y_type": y_type
+                }
+            },
+            "train": train
+        }
+        
+        
+        return MachineLearning_TrainJson_Parser(
+            ML_TRAIN_JSON
+        ).Start_Train()
+        
+    # MachineLearning - Predict
+    def Sample_ML_Predict(self, id:str, X:list):
+        return MachineLearning_PredictJson_Parser(
+            {
+                "id" : id,
+                "data": {
+                    "X":{
+                        "source": [X] # to 2D
+                    }
+                }
+            }
+        ).Start_Prediction()
+    
+    # DeepLearning - Train
+    def Sample_DL_Train(self, id:str, y_type:str, train:dict):
+        
+        # HDD로부터 확인
+        filepath  = self._get_filepath(id)
+        data = {}
+        if os.path.exists( filepath ):
+            data = self._get_samplefile_by_hdd(filepath)
+        else:
+            raise "No Samples File"
+        
+        if data["id"] != id:
+            raise "MisMatch id"
+        
+        # ML :: Train :: Sample 만들기
+        data_X_sources:list = []
+        data_y_sources:list = []
+        for source in data["samples"]:
+            # X,y 서로간 index는 Matching 되어야한다. 무조건!!@(*^$#*&#@$^#*^%)
+            data_X_sources.append( source["sample_x"] )
+            data_y_sources.append( source["sample_y"] )
+        
+        DL_TRAIN_JSON = \
+        {
+            "id": id,
+            "data": {
+                "X": {
+                    "source": data_X_sources # 2차원
+                },
+                "y": {
+                    "source": data_y_sources, # 2차원 ( None/null 이면 클러스터링 취급)
+                    "y_type": y_type
+                }
+            },
+            "train": train
+        }
+        
+        return TrainJson_Parser(
+            DL_TRAIN_JSON
+        ).Start_Train()
+        
+    # DeepLearning - Predict
+    def Sample_DL_Predict(self, id:str, X:list):
+        return PredictJson_Parser(
+            {
+                "id" : id,
+                "data": {
+                    "X":{
+                        "source": [X] # to 2D
+                    }
+                }
+            }
+        ).Start_Prediction()
