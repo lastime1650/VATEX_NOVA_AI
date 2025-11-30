@@ -89,11 +89,11 @@ class AI_API_SERVER():
         jsonData ->
         {
             "id": string,
-            "print": "detail" or "small" or "no keys" => default: "small"  
+            "print_type": "detail" or "small" or "no keys" => default: "small"  
         }
         
         <output>
-        if print == "small"
+        if print_type == "small"
         {
             "samples_x_count" : 1234,
             "train_history" : [
@@ -118,8 +118,9 @@ class AI_API_SERVER():
             
             
             id:str = parsed["id"]
+            print_type:str = parsed.get("print_type", None)
                 
-            return self._success_output( self.WithId_AI_class.Get_Status( id ) )
+            return self._success_output( self.WithId_AI_class.Get_Status( id, print_type ) )
         except Exception as e:
             return self._failed_output( str(e) )
         

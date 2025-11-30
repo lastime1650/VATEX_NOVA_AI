@@ -356,11 +356,14 @@ class WithIdAIStatusManager():
         
         self._is_updated = True
         
-    def OutputStatus(self, is_with_update:bool = False)->dict:
+    def OutputStatus(self, is_with_update:bool = False, print_type:Optional[str] = None)->dict:
         
         if(is_with_update and self._is_updated == False ):
             self.Update()
         
+        if( print_type and print_type.lower() == "detail"):
+            self.status["detail"] = self.samples
+            
         return self.status
         
         
@@ -688,13 +691,13 @@ class WithId_AI_class():
         except Exception as e:
             return e
         
-    def Get_Status(self, id:str):
+    def Get_Status(self, id:str, print_type:Optional[str]):
         filepath  = self._get_filepath(id)
         data = {}
         if os.path.exists( filepath ):
             data = self._get_samplefile_by_hdd(filepath)
             
-            return WithIdAIStatusManager(data).OutputStatus()
+            return WithIdAIStatusManager(data).OutputStatus(False, print_type)
         else:
             raise "No Samples File"
         
